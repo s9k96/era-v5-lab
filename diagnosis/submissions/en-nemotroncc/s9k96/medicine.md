@@ -1,12 +1,12 @@
 # Medicine sheet: en-nemotroncc (s9k96)
 
-Pack `en-nemotroncc`, 500 documents. Counts below come from the 250 documents I have reviewed and accepted so far (`diagnosis/submissions/en-nemotroncc/s9k96/labels.csv`). Five diseases occur more than five times: C1 (39 documents), C4 (26), C3 (23), C5 (16) and D3 (6). Every rule is a short Python function. The same code is in `medicine.py` (a function returns the fixed text, or `None` to drop the document).
+Pack `en-nemotroncc`, 500 documents. Counts below come from all 500 documents, each read in full (`diagnosis/submissions/en-nemotroncc/s9k96/labels.csv`). Six diseases have a medicine below: C1 (151 documents), C3 (78), C4 (70), C5 (60), A1 (14) and D3 (6). Others are in the last table. Every rule is a short Python function. The same code is in `medicine.py` (a function returns the fixed text, or `None` to drop the document).
 
-**Harm test.** The gold set is pending: run by Data A/B. Until then each section gives a proxy test: the rule run on my 167 reviewed documents labelled `clean`. The limit is 1% of 167, so at most 1 document may change or be dropped. The proxy also says how many reviewed documents of that disease the rule touches. The proxy sample is small, so read it as a sanity check, not as the gold result.
+**Harm test.** Gold set: the 34 gold documents of this pack (PR #140), run with the functions in `medicine.py`. The official run by Data A/B is still pending, so the rows say so. Small-gold rule: a medicine passes if it changes or drops at most max(1 document, 1%). Each section also gives a proxy test: the rule run on my 218 documents labelled `clean`, where at most 2 may change or be dropped. The proxy also says how many reviewed documents of that disease the rule touches.
 
 ## Medicine 1: C1 boilerplate
 
-1. **Disease:** C1, 39 documents. Examples:
+1. **Disease:** C1, 151 documents. Examples:
    - `17f4af14c04c9fde`: `Primary tabs` (offset 39)
    - `b787548f4655559b`: `Search for:` (offset 1952)
    - `ca32200e3729539d`: `Click to expand...` (offset 1231)
@@ -23,15 +23,15 @@ def c1(t):
 
    | Test set | Documents changed | Documents dropped |
    |---|---|---|
-   | Gold set (Data A/B) | pending: run by Data A/B | pending: run by Data A/B |
-   | Proxy: 167 reviewed `clean` documents | 0 | 0 |
+   | Gold set (34 documents; official run by Data A/B pending) | 0 | 0 |
+   | Proxy: 218 reviewed `clean` documents | 0 | 0 |
 
-   The rule changes 9 of the 39 reviewed C1 documents.
+   The rule changes 27 of the 151 reviewed C1 documents.
 5. **Side effects:** most reviewed C1 lines are not on the label list. Examples are `Store Information`, `Featured Manchester Subdivision Real Estate Properties`, `Posted by ... October 2, 2013` and `source: easemytrip`, which are site-specific. The list needs more labels as more packs are read. A real section titled `Contents` or `Next` on its own line would lose that line.
 
 ## Medicine 2: C4 two documents joined
 
-1. **Disease:** C4, 26 documents. Examples:
+1. **Disease:** C4, 70 documents. Examples:
    - `a79b9132feb9c66f`: `WikipediaMining is one` (offset 49)
    - `b8e726ed25bf4dfa`: `Related articlesPerfect time management` (offset 11813)
    - `73a72cdf38011c79`: `Each week we send a customized newsletter` (offset 3630)
@@ -47,19 +47,19 @@ def c4(t):
 
    | Test set | Documents changed | Documents dropped |
    |---|---|---|
-   | Gold set (Data A/B) | pending: run by Data A/B | pending: run by Data A/B |
-   | Proxy: 167 reviewed `clean` documents | 0 | 1 (`43c65ec608a359bf`) |
+   | Gold set (34 documents; official run by Data A/B pending) | 0 | 0 |
+   | Proxy: 218 reviewed `clean` documents | 0 | 2 (`43c65ec608a359bf`, `008661b46ac2a3c5`) |
 
-   The rule drops 6 of the 26 reviewed C4 documents.
+   The rule drops 11 of the 70 reviewed C4 documents.
 5. **Side effects:** it misses most C4 documents, because many joins have a space or a line break at the seam. It drops a clean document that misses the space after a full stop twice (`video.With`).
 
 ## Medicine 3: C3 truncated document
 
-1. **Disease:** C3, 23 documents. Examples:
+1. **Disease:** C3, 78 documents. Examples:
    - `c5d61b53df104867`: ends `Example of operation [Read More >>>]` (offset 207)
    - `fb909c1fb77f3f90`: ends `She was actually one of my first...` (offset 136)
    - `87c9a4cea626e330`: ends `by using the following link:` (offset 977)
-2. **Medicine:** drop a document whose last text ends in an ellipsis, `[...]` or `Read more`. These are the cuts that are safe to detect by code. An earlier rule dropped every document that does not end in `.`, `!` or `?`; it dropped 151 of 500 documents and failed. Adding a rule on the last word (`the`, `of`, `to`), which dropped 2 reviewed `clean` documents, or on a lowercase first letter, which brought the total to 2, went over the 1% limit, so both were left out.
+2. **Medicine:** drop a document whose last text ends in an ellipsis, `[...]` or `Read more`. These are the cuts that are safe to detect by code. An earlier rule dropped every document that does not end in `.`, `!` or `?`; it dropped 151 of 500 documents and failed. Adding a rule on the last word (`the`, `of`, `to`), or on a lowercase first letter, went over the 1% limit on the first 167 reviewed `clean` documents, so both were left out.
 ```python
 def c3(t):
     """Drop a document whose last text is cut off: it ends in an ellipsis, '[...]' or 'Read more'."""
@@ -71,35 +71,35 @@ def c3(t):
 
    | Test set | Documents changed | Documents dropped |
    |---|---|---|
-   | Gold set (Data A/B) | pending: run by Data A/B | pending: run by Data A/B |
-   | Proxy: 167 reviewed `clean` documents | 0 | 1 (`d57d424ce49c5526`) |
+   | Gold set (34 documents; official run by Data A/B pending) | 0 | 0 |
+   | Proxy: 218 reviewed `clean` documents | 0 | 1 (`d57d424ce49c5526`) |
 
-   The rule drops 2 of the 23 reviewed C3 documents.
-5. **Side effects:** it catches only 2 of 23. Cuts in the middle of a sentence (`...the remaining item`), cuts after a colon, and texts that start in the middle of a sentence stay in. A clean document that ends in `...` as a style choice is dropped.
+   The rule drops 14 of the 78 reviewed C3 documents.
+5. **Side effects:** it catches only 14 of 78. Cuts in the middle of a sentence (`...the remaining item`), cuts after a colon, and texts that start in the middle of a sentence stay in. A clean document that ends in `...` as a style choice is dropped.
 
 ## Medicine 4: C5 lists of keywords or links
 
-1. **Disease:** C5, 16 documents. Examples:
+1. **Disease:** C5, 60 documents. Examples:
    - `a79b9132feb9c66f`: `Comments About mining industry in sarawak` (offset 794)
    - `73a72cdf38011c79`: `transitional words comparing contrasting essay` (offset 1566)
    - `b8e726ed25bf4dfa`: `Animal abuse persuasive essay list thomas jefferson` (offset 12719)
-2. **Medicine:** no safe fix. Reviewed C5 documents are search-snippet and essay-mill spam. The rule drops a document whose first line is a lowercase keyword string of three or more words, which is the typical title of that spam. Rules on repeated phrases and on the title repeated in the text were tested and flagged at least 9 reviewed `clean` documents, so they fail.
+2. **Medicine:** no safe fix. Reviewed C5 documents are search-snippet and essay-mill spam. The rule drops a document whose first line is a lowercase keyword string of four or more words, which is the typical title of that spam. With three words the rule dropped 3 of the 218 `clean` documents, which fails. Rules on repeated phrases and on the title repeated in the text were tested and flagged at least 9 reviewed `clean` documents, so they fail.
 ```python
 def c5(t):
-    """Drop a document whose first line is a lowercase keyword string of 3+ words ('mining industry in sarawak') - the title line of search-snippet spam."""
+    """Drop a document whose first line is a lowercase keyword string of 4+ words ('mining industry in sarawak') - the title line of search-snippet spam."""
     first = next((l.strip() for l in t.split("\n") if l.strip()), "")
-    return None if len(first.split()) >= 3 and first[0].islower() else t
+    return None if len(first.split()) >= 4 and first[0].islower() else t
 ```
 3. **Action:** drop the document. Deleting the spam lines would leave almost nothing.
 4. **Harm test:**
 
    | Test set | Documents changed | Documents dropped |
    |---|---|---|
-   | Gold set (Data A/B) | pending: run by Data A/B | pending: run by Data A/B |
-   | Proxy: 167 reviewed `clean` documents | 0 | 1 (`8f9a2abd4df5ce33`) |
+   | Gold set (34 documents; official run by Data A/B pending) | 0 | 0 |
+   | Proxy: 218 reviewed `clean` documents | 0 | 1 |
 
-   The rule drops 2 of the 16 reviewed C5 documents.
-5. **Side effects:** it misses 14 of 16. A good document whose title starts in lowercase (`iPhone tips for beginners`) is dropped. C5 needs a model or a quality score, not a pattern.
+   The rule drops 9 of the 60 reviewed C5 documents.
+5. **Side effects:** it misses 51 of 60. A good document whose title starts in lowercase (`iPhone tips for beginners`) is dropped. C5 needs a model or a quality score, not a pattern.
 
 ## Medicine 5: D3 mixed language
 
@@ -122,19 +122,44 @@ def d3(t):
 
    | Test set | Documents changed | Documents dropped |
    |---|---|---|
-   | Gold set (Data A/B) | pending: run by Data A/B | pending: run by Data A/B |
-   | Proxy: 167 reviewed `clean` documents | 0 | 0 |
+   | Gold set (34 documents; official run by Data A/B pending) | 0 | 0 |
+   | Proxy: 218 reviewed `clean` documents | 0 | 0 |
 
    The rule changes 2 of the 6 reviewed D3 documents.
 5. **Side effects:** a quoted line in another language, or a bilingual example, is deleted from a good document. Mixed sentences such as `3da0a9bbeeac1a6a` (Spanish and English in one sentence) are not fixed; they need a human decision.
 
-## Diseases seen five times or fewer (no medicine sheet)
+## Medicine 6: A1 invisible characters
+
+1. **Disease:** A1, 14 documents (zero-width space, soft hyphen, byte-order mark, bidi marks, and stray ZWJ/ZWNJ).
+2. **Medicine:** delete the invisible characters. A ZWJ or ZWNJ stays when an Indic letter is next to it, because there it is part of the script.
+```python
+def a1(t):
+    """Delete ZWSP, BOM, soft hyphen and bidi marks; delete ZWJ/ZWNJ only when no Indic letter is next to them."""
+    junk = {0x200B, 0xFEFF, 0x00AD, *range(0x202A, 0x202F), *range(0x2066, 0x206A)}
+    t = "".join(c for c in t if ord(c) not in junk)
+    indic = re.compile(r"[\u0900-\u0DFF]")
+    return re.sub(r"[\u200c\u200d]", lambda m: m.group() if indic.search(t[max(0, m.start() - 2):m.end() + 2]) else "", t)
+```
+3. **Action:** fix the text (delete the characters); the document is kept.
+4. **Harm test:**
+
+   | Test set | Documents changed | Documents dropped |
+   |---|---|---|
+   | Gold set (34 documents; official run by Data A/B pending) | 0 | 0 |
+   | Proxy: 218 reviewed `clean` documents | 0 | 0 |
+
+   The rule changes all 14 reviewed A1 documents.
+5. **Side effects:** none seen. No-break spaces (U+00A0) are not touched; they are normal in English pages.
+
+## Other diseases (no medicine section)
 
 | Code | Documents | Note |
 |---|---|---|
-| B4 | 5 | the rule `b4` in `medicine.py` removes template slots; borderline, not counted as more than five |
-| C2 | 5 | `c2` keeps the first copy of a line that occurs three or more times |
-| F1 | 3 | all three are phone numbers or e-mail addresses; under the private-persons-only rule only `fab230d1a3b03a77` is clearly private, the others are spam or a business number. No medicine until the count is above five |
-| A1 | 2 | `a1` deletes ZWSP, BOM, soft hyphen and bidi marks and keeps ZWJ/ZWNJ next to Indic letters |
+| C2 | 22 | `c2` in `medicine.py` keeps the first copy of a line that occurs three or more times, but it changes 3 of the 218 `clean` documents (natural repeats), so it fails the 1% limit and is not proposed |
+| D4 | 14 | spun or machine-paraphrased text; no automatic fix |
+| B4 | 11 | `b4` in `medicine.py` removes template slots; it touches 4 of 11 and no `clean` document, but its pattern list is not final, so no section |
+| F1 | 9 | only private persons count (28 Oct). `f1` in `medicine.py` changes 5 of 218 `clean` documents (business phone numbers), so it fails; a person-versus-business decision needs a human |
+| A3 | 3 | can be re-decoded with `a3` in `medicine.py` |
+| B1 | 3 | `b1` in `medicine.py` unescapes HTML entities |
 | B5 | 2 | no automatic fix |
-| A3, B2, D4 | 1 each | A3 can be re-decoded with `a3` |
+| B2, B3, F3 | 1 each | B3 documents are dropped; B2 and F3 need a human |
