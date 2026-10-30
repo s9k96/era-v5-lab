@@ -111,6 +111,7 @@ def c5(t):
 ```python
 def d3(t):
     """Delete lines whose letters are mostly non-Latin (CJK, Cyrillic, Hangul, Devanagari ...) in an English document."""
+    import unicodedata
     def foreign(l):
         letters = [c for c in l if c.isalpha()]
         return len(letters) >= 3 and sum(unicodedata.name(c, "").split(" ")[0] != "LATIN" for c in letters) / len(letters) > 0.5
