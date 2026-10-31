@@ -2,7 +2,7 @@
 
 Pack `en-nemotroncc`, 500 documents. Counts below come from all 500 documents, each read in full (`diagnosis/submissions/en-nemotroncc/s9k96/labels.csv`). Six diseases have a medicine below: C1 (151 documents), C3 (78), C4 (70), C5 (60), A1 (14) and D3 (6). Others are in the last table. Every rule is a short Python function. The same code is in `medicine.py` (a function returns the fixed text, or `None` to drop the document).
 
-**Harm test.** Gold set: the 34 gold documents of this pack (PR #140), run with the functions in `medicine.py`. The official run by Data A/B is still pending, so the rows say so. Small-gold rule: a medicine passes if it changes or drops at most max(1 document, 1%). Each section also gives a proxy test: the rule run on my 218 documents labelled `clean`, where at most 2 may change or be dropped. The proxy also says how many reviewed documents of that disease the rule touches.
+**Harm test.** Gold set: the 34 gold documents of this pack, run with Data A's `harm_test.py` (PR #140, build of 30 Oct). Small-gold rule (TSAI): a medicine passes if it changes or drops at most max(1 document, 1%). All six medicines pass: 0 of 34 documents changed or dropped. Each section also gives a proxy test: the rule run on my 218 documents labelled `clean` (all 500 documents are reviewed), where at most 2 may change or be dropped. The proxy also says how many reviewed documents of that disease the rule touches.
 
 ## Medicine 1: C1 boilerplate
 
@@ -23,8 +23,10 @@ def c1(t):
 
    | Test set | Documents changed | Documents dropped |
    |---|---|---|
-   | Gold set (34 documents; official run by Data A/B pending) | 0 | 0 |
+   | Gold set (34 documents, Data A harm test) | 0 of 34 | 0 of 34 |
    | Proxy: 218 reviewed `clean` documents | 0 | 0 |
+
+   Gold set: 34 documents, Data A build of 30 Oct; TSAI rule: pass if at most max(1 document, 1%) changes. Result: 0.00% changed, 0.00% dropped, PASS.
 
    The rule changes 27 of the 151 reviewed C1 documents.
 5. **Side effects:** most reviewed C1 lines are not on the label list. Examples are `Store Information`, `Featured Manchester Subdivision Real Estate Properties`, `Posted by ... October 2, 2013` and `source: easemytrip`, which are site-specific. The list needs more labels as more packs are read. A real section titled `Contents` or `Next` on its own line would lose that line.
@@ -47,8 +49,10 @@ def c4(t):
 
    | Test set | Documents changed | Documents dropped |
    |---|---|---|
-   | Gold set (34 documents; official run by Data A/B pending) | 0 | 0 |
+   | Gold set (34 documents, Data A harm test) | 0 of 34 | 0 of 34 |
    | Proxy: 218 reviewed `clean` documents | 0 | 2 (`43c65ec608a359bf`, `008661b46ac2a3c5`) |
+
+   Gold set: 34 documents, Data A build of 30 Oct; TSAI rule: pass if at most max(1 document, 1%) changes. Result: 0.00% changed, 0.00% dropped, PASS.
 
    The rule drops 11 of the 70 reviewed C4 documents.
 5. **Side effects:** it misses most C4 documents, because many joins have a space or a line break at the seam. It drops a clean document that misses the space after a full stop twice (`video.With`).
@@ -71,8 +75,10 @@ def c3(t):
 
    | Test set | Documents changed | Documents dropped |
    |---|---|---|
-   | Gold set (34 documents; official run by Data A/B pending) | 0 | 0 |
+   | Gold set (34 documents, Data A harm test) | 0 of 34 | 0 of 34 |
    | Proxy: 218 reviewed `clean` documents | 0 | 1 (`d57d424ce49c5526`) |
+
+   Gold set: 34 documents, Data A build of 30 Oct; TSAI rule: pass if at most max(1 document, 1%) changes. Result: 0.00% changed, 0.00% dropped, PASS.
 
    The rule drops 14 of the 78 reviewed C3 documents.
 5. **Side effects:** it catches only 14 of 78. Cuts in the middle of a sentence (`...the remaining item`), cuts after a colon, and texts that start in the middle of a sentence stay in. A clean document that ends in `...` as a style choice is dropped.
@@ -95,8 +101,10 @@ def c5(t):
 
    | Test set | Documents changed | Documents dropped |
    |---|---|---|
-   | Gold set (34 documents; official run by Data A/B pending) | 0 | 0 |
+   | Gold set (34 documents, Data A harm test) | 0 of 34 | 0 of 34 |
    | Proxy: 218 reviewed `clean` documents | 0 | 1 |
+
+   Gold set: 34 documents, Data A build of 30 Oct; TSAI rule: pass if at most max(1 document, 1%) changes. Result: 0.00% changed, 0.00% dropped, PASS.
 
    The rule drops 9 of the 60 reviewed C5 documents.
 5. **Side effects:** it misses 51 of 60. A good document whose title starts in lowercase (`iPhone tips for beginners`) is dropped. C5 needs a model or a quality score, not a pattern.
@@ -122,8 +130,10 @@ def d3(t):
 
    | Test set | Documents changed | Documents dropped |
    |---|---|---|
-   | Gold set (34 documents; official run by Data A/B pending) | 0 | 0 |
+   | Gold set (34 documents, Data A harm test) | 0 of 34 | 0 of 34 |
    | Proxy: 218 reviewed `clean` documents | 0 | 0 |
+
+   Gold set: 34 documents, Data A build of 30 Oct; TSAI rule: pass if at most max(1 document, 1%) changes. Result: 0.00% changed, 0.00% dropped, PASS.
 
    The rule changes 2 of the 6 reviewed D3 documents.
 5. **Side effects:** a quoted line in another language, or a bilingual example, is deleted from a good document. Mixed sentences such as `3da0a9bbeeac1a6a` (Spanish and English in one sentence) are not fixed; they need a human decision.
@@ -145,8 +155,10 @@ def a1(t):
 
    | Test set | Documents changed | Documents dropped |
    |---|---|---|
-   | Gold set (34 documents; official run by Data A/B pending) | 0 | 0 |
+   | Gold set (34 documents, Data A harm test) | 0 of 34 | 0 of 34 |
    | Proxy: 218 reviewed `clean` documents | 0 | 0 |
+
+   Gold set: 34 documents, Data A build of 30 Oct; TSAI rule: pass if at most max(1 document, 1%) changes. Result: 0.00% changed, 0.00% dropped, PASS.
 
    The rule changes all 14 reviewed A1 documents.
 5. **Side effects:** none seen. No-break spaces (U+00A0) are not touched; they are normal in English pages.
