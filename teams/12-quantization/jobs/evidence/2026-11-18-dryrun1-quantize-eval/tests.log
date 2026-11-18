@@ -1,0 +1,19 @@
+## test_quantize_eval
+----------------------------------------------------------------------
+Ran 4 tests in 0.041s
+
+OK
+## test_export_hf
+----------------------------------------------------------------------
+Ran 13 tests in 1.356s
+
+OK
+## test_convert_frozen
+PASS: wrong sha256 refused; the converter output carries the frozen tokenizer, pre = granite-embed-multi-97m
+## test_gguf_roundtrip_normalizer
+PASS: raw pass differs only on lines the normalizer changes; normalized pass is clean; verdict 2 with the flag, 1 without
+## test_flow_fixed_prompts (014744e4)
+----------------------------------------------------------------------
+Ran 3 tests in 0.004s
+
+OK

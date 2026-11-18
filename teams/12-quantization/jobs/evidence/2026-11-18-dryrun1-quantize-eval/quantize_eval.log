@@ -1,0 +1,124 @@
+[22:36:06] llama.cpp b11669 (620d2225c) | Apple M5 16GB, macOS 26.6.2, Metal
+[22:36:06] $ git clone --depth 1 --branch b11669 https://github.com/ggml-org/llama.cpp ./out/work/llama.cpp-b11669
+Cloning into './out/work/llama.cpp-b11669'...
+Note: switching to '620d2225cc436ab0b001e3200e590e3b286ef9ab'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+[22:36:13] $ uv venv --python 3.12 ./out/work/.venv-convert
+Using CPython 3.12.15
+warning: The requested interpreter resolved to Python 3.12.15, which is incompatible with the project's Python requirement: `>=3.14` (from `project.requires-python`)
+Creating virtual environment at: ./out/work/.venv-convert
+Activate with: source ./out/work/.venv-convert/bin/activate
+[22:36:13] $ uv pip install --python ./out/work/.venv-convert/bin/python -r ./out/work/llama.cpp-b11669/requirements/requirements-convert_hf_to_gguf.txt --index-strategy unsafe-best-match
+Using Python 3.12.15 environment at: ./out/work/.venv-convert
+Resolved 28 packages in 2.05s
+Prepared 2 packages in 49ms
+Installed 28 packages in 415ms
+ + certifi==2026.10.23
+ + charset-normalizer==3.5.2
+ + filelock==4.2.12
+ + fsspec==2026.9.0
+ + gguf==0.19.0
+ + hf-xet==1.8.0
+ + huggingface-hub==0.36.2
+ + idna==3.20
+ + jinja2==3.1.6
+ + markupsafe==3.0.4
+ + mpmath==1.3.0
+ + networkx==3.7
+ + numpy==2.2.6
+ + packaging==26.3
+ + protobuf==4.25.9
+ + pyyaml==6.0.3
+ + regex==2026.11.18
+ + requests==2.34.2
+ + safetensors==0.8.0
+ + sentencepiece==0.2.3
+ + setuptools==81.0.0
+ + sympy==1.14.0
+ + tokenizers==0.22.2
+ + torch==2.11.0
+ + tqdm==4.70.1
+ + transformers==4.57.6
+ + typing-extensions==4.16.0
+ + urllib3==2.8.0
+[22:36:16] $ uv pip install --python ./out/work/.venv-convert/bin/python ./out/work/llama.cpp-b11669/gguf-py pyarrow<19
+Using Python 3.12.15 environment at: ./out/work/.venv-convert
+Resolved 10 packages in 55ms
+   Building gguf @ file://./out/work/llama.cpp-b11669/gguf-py
+      Built gguf @ file://./out/work/llama.cpp-b11669/gguf-py
+Prepared 1 package in 602ms
+Uninstalled 1 package in 1ms
+Installed 2 packages in 12ms
+ - gguf==0.19.0
+ + gguf==0.19.0 (from file://./out/work/llama.cpp-b11669/gguf-py)
+ + pyarrow==18.1.0
+[22:36:16] $ ./out/work/.venv-convert/bin/python <repo>/teams/12-quantization/scripts/export_hf.py --checkpoint ./inputs/random-g5 --out ./out/work/hf/random-g5-91b5a5b0 --tokenizer ./inputs/tokenizer.json --bos <|begin_of_text|> --eos <|endoftext|> --verify 64
+A1: max logit difference 1.91e-06 (limit 0.001), same top-1 on 4096/4096 positions: PASS
+exported 17,639,744 parameters (bf16) to ./out/work/hf/random-g5-91b5a5b0
+[22:36:32] $ convert_hf_to_gguf.py (pre-tokenizer granite-embed-multi-97m) ./out/work/hf/random-g5-91b5a5b0 --outtype bf16 --outfile ./out/work/random-g5-91b5a5b0-bf16.gguf
+A3: same top-1 on 16/16 prompts, max log-probability difference 0.0065 (limit 0.05): PASS
+[22:36:39] $ uv pip install --python ./out/work/.venv-convert/bin/python llama-cpp-python==0.3.36 datasets==4.8.5 regex
+Using Python 3.12.15 environment at: ./out/work/.venv-convert
+Resolved 39 packages in 996ms
+Uninstalled 2 packages in 48ms
+Installed 23 packages in 92ms
+ + aiohappyeyeballs==2.7.1
+ + aiohttp==3.14.5
+ + aiosignal==1.4.0
+ + anyio==4.16.0
+ + attrs==26.1.0
+ + datasets==4.8.5
+ + dill==0.4.1
+ + diskcache==5.6.3
+ + frozenlist==1.8.0
+ - fsspec==2026.9.0
+ + fsspec==2026.2.0
+ + h11==0.16.0
+ + httpcore==1.0.9
+ + httpx==0.28.1
+ + llama-cpp-python==0.3.36
+ + multidict==7.2.1
+ + multiprocess==0.70.19
+ + pandas==3.1.1
+ + propcache==0.5.4
+ - pyarrow==18.1.0
+ + pyarrow==26.0.1
+ + python-dateutil==4.0.0
+ + tzdata==2026.6
+ + xxhash==4.1.0
+ + yarl==1.25.1
+[22:36:40] $ ./out/work/.venv-convert/bin/python <repo>/teams/12-quantization/tokenizer/gguf_roundtrip.py --tokenizer ./inputs/tokenizer.json --name random-g5-91b5a5b0 --gguf ./out/work/random-g5-91b5a5b0-bf16.gguf --normalize-first --llama-cpp ./out/work/llama.cpp-b11669 --work ./out/work/roundtrip --out ./out/work/random-g5-91b5a5b0-roundtrip --pre granite-embed-multi-97m --bos <|begin_of_text|> --eos <|endoftext|>
+Repo card metadata block was not found. Setting CardData to empty.
+granite-embed-multi-97m: 3075 lines with different ids, 0 decode errors, 0 bad specials, 0+6 bad ids; normalized pass: 1 different, 3074 lines changed by the normalizer; verdict 1
+wrote ./out/work/random-g5-91b5a5b0-roundtrip/gguf_roundtrip_random-g5-91b5a5b0.md
+[22:40:30] tokenizer round trip: exit code 1, differences the dropped normalizer does not explain, on lines or in the whole-vocabulary check: read the report. Report: ./out/work/random-g5-91b5a5b0-roundtrip/gguf_roundtrip_random-g5-91b5a5b0.md
+[22:40:30] context 1024 (the model's trained length), not --ctx 4096
+[22:40:30] eval: own-smoke-eval (20 items written for this smoke, not a benchmark), 20 items
+[22:40:33] bf16: sha256 6da1554f3b834e3869ff6bdeaf1dbec8ae487dfbbae05802589f4da0ab7a33ba -> manifest_2026-11-18.json
+[22:40:33] $ /opt/homebrew/bin/llama-server -m ./out/work/random-g5-91b5a5b0-bf16.gguf --port 61689 -ngl 99 -c 1024 --temp 0 --seed 0 --no-webui -np 1
+[22:40:38] bf16: score 0.0 {"mcq": 0.0, "numeric": 0.0} | 0.04 GB, 16.0 bpw | quant 0.0s, eval 4.1s, 1123.4 tok/s
+[22:40:38] $ /opt/homebrew/bin/llama-quantize ./out/work/random-g5-91b5a5b0-bf16.gguf ./out/work/random-g5-91b5a5b0-Q8_0.gguf Q8_0
+[22:40:41] Q8_0: sha256 26908e9b55e7dbe3d1a191bcbc3bf0e06045d1880afe1d64e605ac2b969e5de1 -> manifest_2026-11-18.json
+[22:40:41] $ /opt/homebrew/bin/llama-server -m ./out/work/random-g5-91b5a5b0-Q8_0.gguf --port 61752 -ngl 99 -c 1024 --temp 0 --seed 0 --no-webui -np 1
+[22:40:49] Q8_0: score 0.0 {"mcq": 0.0, "numeric": 0.0} | 0.02 GB, 9.58 bpw | quant 0.4s, eval 6.5s, 791.7 tok/s
+[22:40:49] $ /opt/homebrew/bin/llama-quantize --output-tensor-type q8_0 ./out/work/random-g5-91b5a5b0-bf16.gguf ./out/work/random-g5-91b5a5b0-Q4_K_M.gguf Q4_K_M
+[22:40:52] Q4_K_M: sha256 f64e178a04767050df86984147c20991a572aa19a208955331c1f2627eed8b20 -> manifest_2026-11-18.json
+[22:40:52] $ /opt/homebrew/bin/llama-server -m ./out/work/random-g5-91b5a5b0-Q4_K_M.gguf --port 61814 -ngl 99 -c 1024 --temp 0 --seed 0 --no-webui -np 1
+[22:41:00] Q4_K_M: score 0.0 {"mcq": 0.0, "numeric": 0.0} | 0.02 GB, 8.25 bpw | quant 0.3s, eval 7.5s, 685.8 tok/s
+[22:41:00] scores: ./out/scores.json
+exit=0

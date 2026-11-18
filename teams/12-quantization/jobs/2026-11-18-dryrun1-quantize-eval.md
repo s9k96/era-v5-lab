@@ -10,7 +10,7 @@ Owner:           Rahul Bhati (therahulbhati), Shubham Saxena (s9k96)
 Lead approval:   SreekanthZipsy
 Question:        Does the G12 flow take the dry run 1 checkpoint to bf16, Q8_0 and Q4_K_M GGUF files with no manual step, and how far do Q8_0 and Q4_K_M move from bf16 in score and on 100 fixed prompts?
 Script:          teams/12-quantization/scripts/quantize_eval.py, then teams/12-quantization/scripts/flow_fixed_prompts.py (with export_hf.py, check_gguf_logits.py, tokenizer/gguf_roundtrip.py and Team 10's eval/effort_suite.py)
-Command:         python teams/12-quantization/scripts/quantize_eval.py --checkpoint inputs/dryrun1-1234 --tokenizer inputs/tokenizer.json --tokenizer-sha256 e6b93a93a60520d7b1af2e9242485f443b5596a1e116b8f8798d83bbad25a64b --formats bf16,Q8_0,Q4_K_M --roundtrip --work out/work --runs-csv out/runs.csv --scores-out out/scores.json && python teams/12-quantization/scripts/flow_fixed_prompts.py --gguf-dir out/work --formats Q8_0,Q4_K_M --manifest teams/10-post-training/eval/effort_manifest.json --source-dir code_contests=inputs/code_contests --source-dir hendrycks_math=inputs/hendrycks_math --out out/prompts --delete-ggufs
+Command:         python teams/12-quantization/scripts/quantize_eval.py --checkpoint inputs/dryrun1-1234 --tokenizer inputs/tokenizer.json --tokenizer-sha256 e6b93a93a60520d7b1af2e9242485f443b5596a1e116b8f8798d83bbad25a64b --formats bf16,Q8_0,Q4_K_M --roundtrip --work out/work --runs-csv out/runs.csv --scores-out out/scores.json && python teams/12-quantization/scripts/flow_fixed_prompts.py --gguf-dir out/work --scores out/scores.json --formats Q8_0,Q4_K_M --manifest teams/10-post-training/eval/effort_manifest.json --source-dir code_contests=inputs/code_contests --source-dir hendrycks_math=inputs/hendrycks_math --out out/prompts --delete-ggufs
 Config:          none (every setting is on the command line)
 Inputs:          see "Inputs and pins" below
 Hardware:        1 GPU
@@ -19,7 +19,7 @@ Precision:       bf16 (baseline), Q8_0 and Q4_K_M weights; router F32, output Q8
 Measures:        A1 (export logits vs G5's model), A3 (llama.cpp vs G5), round-trip exit code; per format: size, bpw, router/output type, score, eval time, tok/s; on the 100 prompts per format: finish reasons, tok/s, outputs identical to bf16, mean shared prefix with bf16
 Expected result: A1 and A3 PASS; round trip exit 1 or 2 (known limits of the GGUF tokenizer, #467); Q8_0 within noise of bf16 and close to bf16 on the prompts; Q4_K_M within about 2 points. No score level is assumed for a 1,221-step model.
 Outputs:         out/runs.csv, out/scores.json, out/work/*-roundtrip/*.md, out/work/*.json, out/prompts/summary.json, out/prompts/prompts_<format>.jsonl (ids, output token ids, sha256s; text only for our own prompts), logs. GGUF files deleted at the end.
-Test log:        teams/12-quantization/jobs/2026-11-15-flow-random-checkpoint.log (own machine, random G5 checkpoint, public BrahmicTokenizer-131K)
+Test log:        teams/12-quantization/jobs/evidence/2026-11-18-dryrun1-quantize-eval/smoke.md (own machine, random G5 checkpoint, p1536 tokenizer)
 ```
 
 ## Inputs and pins
@@ -27,7 +27,7 @@ Test log:        teams/12-quantization/jobs/2026-11-15-flow-random-checkpoint.lo
 | Input | Where TSAI gets it | Pin |
 |---|---|---|
 | Run folder `inputs/dryrun1-1234/` | #475 output, kept by TSAI | `summary.json` `final_model_sha256` |
-| Tokenizer `inputs/tokenizer.json` | p1536, the one dry run 1 used (`teams/03-tokenizer/release/`) | sha256 `e6b93a93a60520d7b1af2e9242485f443b5596a1e116b8f8798d83bbad25a64b` |
+| Tokenizer `inputs/tokenizer.json` | p1536, the one dry run 1 used. Not in the repository: TSAI stages it, and checks it against `teams/03-tokenizer/release/SHA256SUMS` | sha256 `e6b93a93a60520d7b1af2e9242485f443b5596a1e116b8f8798d83bbad25a64b` |
 | `inputs/code_contests/` | `deepmind/code_contests` @ `802411c3010c`, the 24 `train-*.parquet` files the manifest names (about 4.6 GB) | each file's sha256 in `effort_manifest.json`, checked by `effort_suite.py` |
 | `inputs/hendrycks_math/` | `EleutherAI/hendrycks_math` @ `21a5633873b6`, the 7 `<subject>/train-*.parquet` files (3 MB) | as above |
 | 100 prompts | Team 10's `eval/effort_manifest.json` (in the repo): 30 code and 25 math slots from the files above; its 45 unavailable slots (20 tool, 15 Indic, 10 general) filled from our `prompts/fixed_100.jsonl` | manifest `d6190b2d…`, `fixed_100.sha256` |
@@ -35,17 +35,19 @@ Test log:        teams/12-quantization/jobs/2026-11-15-flow-random-checkpoint.lo
 
 Team 10's prompt texts and the model's answers to them are not written to `out/`, only ids and sha256s.
 
-## Test run (15 Nov, Apple M1 8 GB, Metal, llama.cpp b11669)
+## Test run (18 Nov, Apple M5 16 GB, Metal, llama.cpp b11669)
 
-Random G5 checkpoint from `scripts/make_random_checkpoint.py` (2 layers, width 64, 16 + 1 experts, 131,072 ids,
-9.8M parameters), public BrahmicTokenizer-131K (`01d968a7…`), stand-in eval limited to 20 items. Exit 0.
+Full log: `evidence/2026-11-18-dryrun1-quantize-eval/smoke.md`. Random G5 checkpoint from `scripts/make_random_checkpoint.py`
+(2 layers, width 64, 16 + 1 experts, 131,072 ids, 9.8M parameters), the p1536 tokenizer (`e6b93a93…`), 20 own eval
+items instead of the stand-in. `quantize_eval.py` exit 0 in 295 s; `flow_fixed_prompts.py --gguf-dir` exit 0 in 25 s.
 
 | Step | Result |
 |---|---|
-| A1 export | max logit difference 1.67e-06, same top-1 on 4,096 of 4,096 positions: PASS |
-| A3 llama.cpp vs G5 | same top-1 on 16 of 16 prompts, max log-probability difference 0.0076: PASS |
-| Round trip | 0 lines with different ids; 16 single tokens wrong in the whole-vocabulary check: exit 1 |
-| bf16 / Q8_0 / Q4_K_M | built, router F32 and output Q8_0 checked, scored (score 0: random weights) |
+| A1 export | max logit difference 1.91e-06, same top-1 on 4,096 of 4,096 positions: PASS |
+| A3 llama.cpp vs G5 | same top-1 on 16 of 16 prompts, max log-probability difference 0.0065: PASS |
+| Round trip | 3,075 of 20,400 held-out lines differ (3,074 the dropped normalizer, 1 not); 6 single tokens wrong in the whole-vocabulary check: exit 1 |
+| bf16 / Q8_0 / Q4_K_M | built (41.2, 24.7 and 21.3 MB), router F32 and output Q8_0 checked, scored (score 0: random weights) |
+| 100 prompts | all three formats ran; Q8_0 identical to bf16 on 15 of 100, Q4_K_M on 2 of 100 (random weights) |
 
 ## Open before sending
 

@@ -1,0 +1,127 @@
+{
+  "model": "random-g5",
+  "revision": "91b5a5b08628791f9b9bd38e796ca4a117b3c6a200aaa126c15867a37874b8ce",
+  "checkpoint": "./inputs/random-g5",
+  "tokenizer_sha256": "e6b93a93a60520d7b1af2e9242485f443b5596a1e116b8f8798d83bbad25a64b",
+  "gguf": {
+    "arch": "granitemoe",
+    "n_ctx_train": 1024,
+    "pre": "granite-embed-multi-97m",
+    "n_vocab": 131072,
+    "eos_id": 130822
+  },
+  "export_a1": {
+    "test": "A1",
+    "prompts": 64,
+    "tokens_per_prompt": 64,
+    "max_abs_logit_diff": 1.9073486328125e-06,
+    "tolerance": 0.001,
+    "same_top1": 4096,
+    "positions": 4096,
+    "passed": true
+  },
+  "gguf_a3": {
+    "test": "A3",
+    "prompts": 16,
+    "skipped": 0,
+    "tokens_per_prompt": 48,
+    "same_top1": 16,
+    "max_abs_logprob_diff": 0.0064907073974609375,
+    "tolerance": 0.05,
+    "passed": true
+  },
+  "tokenizer_roundtrip": {
+    "exit_code": 1,
+    "verdict": "differences the dropped normalizer does not explain, on lines or in the whole-vocabulary check: read the report",
+    "report": "./out/work/random-g5-91b5a5b0-roundtrip/gguf_roundtrip_random-g5-91b5a5b0.md"
+  },
+  "runtime": "llama.cpp b11669 (620d2225c)",
+  "machine": "Apple M5 16GB, macOS 26.6.2, Metal",
+  "eval_set": "own-smoke-eval (20 items written for this smoke, not a benchmark)",
+  "n_items": 20,
+  "prompt_mode": "completion",
+  "context": 1024,
+  "formats": [
+    {
+      "date": "2026-11-18",
+      "model": "random-g5",
+      "revision": "91b5a5b08628",
+      "format": "bf16",
+      "bpw": 16.0,
+      "size_gb": 0.04,
+      "router_type": "F32",
+      "output_type": "BF16",
+      "eval_set": "own-smoke-eval (20 items written for this smoke, not a benchmark)",
+      "n_items": 20,
+      "score": 0.0,
+      "score_by_kind": {
+        "mcq": 0.0,
+        "numeric": 0.0
+      },
+      "quant_time_s": 0.0,
+      "eval_time_s": 4.1,
+      "gen_tok_s": 1123.4,
+      "machine": "Apple M5 16GB, macOS 26.6.2, Metal",
+      "runtime": "llama.cpp b11669 (620d2225c)",
+      "notes": "prompt=completion; tokenizer=e6b93a93a605",
+      "file": "./out/work/random-g5-91b5a5b0-bf16.gguf",
+      "sha256": "6da1554f3b834e3869ff6bdeaf1dbec8ae487dfbbae05802589f4da0ab7a33ba",
+      "size_bytes": 41214176,
+      "prompts_over_context": 0
+    },
+    {
+      "date": "2026-11-18",
+      "model": "random-g5",
+      "revision": "91b5a5b08628",
+      "format": "Q8_0",
+      "bpw": 9.58,
+      "size_gb": 0.02,
+      "router_type": "F32",
+      "output_type": "Q8_0",
+      "eval_set": "own-smoke-eval (20 items written for this smoke, not a benchmark)",
+      "n_items": 20,
+      "score": 0.0,
+      "score_by_kind": {
+        "mcq": 0.0,
+        "numeric": 0.0
+      },
+      "quant_time_s": 0.4,
+      "eval_time_s": 6.5,
+      "gen_tok_s": 791.7,
+      "machine": "Apple M5 16GB, macOS 26.6.2, Metal",
+      "runtime": "llama.cpp b11669 (620d2225c)",
+      "notes": "prompt=completion; tokenizer=e6b93a93a605",
+      "file": "./out/work/random-g5-91b5a5b0-Q8_0.gguf",
+      "sha256": "26908e9b55e7dbe3d1a191bcbc3bf0e06045d1880afe1d64e605ac2b969e5de1",
+      "size_bytes": 24679136,
+      "prompts_over_context": 0
+    },
+    {
+      "date": "2026-11-18",
+      "model": "random-g5",
+      "revision": "91b5a5b08628",
+      "format": "Q4_K_M",
+      "bpw": 8.25,
+      "size_gb": 0.02,
+      "router_type": "F32",
+      "output_type": "Q8_0",
+      "eval_set": "own-smoke-eval (20 items written for this smoke, not a benchmark)",
+      "n_items": 20,
+      "score": 0.0,
+      "score_by_kind": {
+        "mcq": 0.0,
+        "numeric": 0.0
+      },
+      "quant_time_s": 0.3,
+      "eval_time_s": 7.5,
+      "gen_tok_s": 685.8,
+      "machine": "Apple M5 16GB, macOS 26.6.2, Metal",
+      "runtime": "llama.cpp b11669 (620d2225c)",
+      "notes": "prompt=completion; tokenizer=e6b93a93a605",
+      "file": "./out/work/random-g5-91b5a5b0-Q4_K_M.gguf",
+      "sha256": "f64e178a04767050df86984147c20991a572aa19a208955331c1f2627eed8b20",
+      "size_bytes": 21263840,
+      "prompts_over_context": 0
+    }
+  ]
+}
