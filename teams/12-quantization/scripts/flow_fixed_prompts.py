@@ -17,15 +17,17 @@ or --scores (quantize_eval.py's --scores-out, if that is not in its --work folde
 (30 code, 25 math) are read from the pinned parquet files under --source-dir and checked against the manifest's sha256s by
 Team 10's own effort_suite.py. Its unavailable slots (20 tool_agentic, 15 indic, 10 general) are filled from --prompts in id
 order: tool_agentic from tool_call then reasoning, indic one language at a time, general from english. For Team 10 items
-neither the prompt nor the generated text is written, only ids and sha256s, so no benchmark text reaches the repo.
+neither the prompt nor the generated text nor the output token ids are written (with the public tokenizer the ids are the
+text): only the slot, token counts, a sha256 of the text, the finish reason and the speed. The ids stay in memory for the
+agreement numbers, which the summary reports per source ("g10_55", "g12_fill_45"), never pooled.
 
 1. checks prompts/fixed_100.jsonl against prompts/fixed_100.sha256 (100 prompts, fixed ids and order);
 2. tokenizer/convert_frozen.py: checkpoint + frozen tokenizer -> bf16 GGUF (refuses a tokenizer with another sha256);
 3. llama-quantize each format (output layer Q8_0, as quantize_eval.py);
 4. runs every prompt on bf16 and on each format: greedy (temperature 0), seed 0, same max tokens, token ids kept.
 
-Writes out/prompts_<format>.jsonl (per prompt: id, output token ids, sha256 of the text, the text, finish reason, tokens/s)
-and out/summary.json (finish reasons, mean tokens/s, agreement with bf16: identical outputs and mean shared prefix, GGUF
+Writes out/prompts_<format>.jsonl (per prompt: id, output token ids, sha256 of the text, the text, finish reason, tokens/s;
+not the ids or text of Team 10 items) and out/summary.json (finish reasons, mean tokens/s, agreement with bf16: identical outputs and mean shared prefix, GGUF
 sha256s, versions, wall time). The prompts are our own, not from a benchmark. The GGUF files go to out/_work and are removed
 at the end (--keep to keep them), so out/ stays small. The tokenizer round trip on held-out text needs the network and is
 tokenizer/convert_frozen.py's own run (#467); it is not repeated here.
@@ -114,6 +116,12 @@ def find_ggufs(work: Path, formats: list[str]) -> dict[str, Path]:
     return ggufs
 
 
+def write_rows(rows: list[dict], out: Path) -> None:
+    """One json line per prompt. A private row (Team 10's) loses output_ids and text here; it keeps them in memory for agreement()."""
+    pub = [{k: v for k, v in r.items() if k != "private" and not (r.get("private") and k in ("output_ids", "text"))} for r in rows]
+    out.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in pub), encoding="utf-8")
+
+
 def generate(gguf: Path, prompts: list[dict], max_tokens: int, n_ctx: int, ngl: int, out: Path) -> dict:
     from llama_cpp import Llama
     m = Llama(model_path=str(gguf), n_ctx=n_ctx, n_gpu_layers=ngl, seed=0, verbose=False)
@@ -132,9 +140,9 @@ def generate(gguf: Path, prompts: list[dict], max_tokens: int, n_ctx: int, ngl: 
         rows.append({"id": p["id"], **({"source": p["source"], "task_id": p["task_id"]} if "source" in p else {}),
                      "n_prompt_tokens": len(ids_in), "output_ids": ids, "n_output_tokens": len(ids),
                      "text_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest()[:16],
-                     **({} if p.get("private") else {"text": text}),
+                     **({"private": True} if p.get("private") else {"text": text}),
                      "finish_reason": finish, "tokens_per_s": round(len(ids) / dt, 2) if dt > 0 else None})
-    out.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+    write_rows(rows, out)
     del m
     fin = {k: sum(r["finish_reason"] == k for r in rows) for k in ("stop", "length")}
     return {"rows": rows, "finish": fin, "wall_s": round(time.time() - t_all, 1),
@@ -149,6 +157,19 @@ def agreement(base: list[dict], other: list[dict]) -> dict:
         same += x == y
         prefix += k / max(len(x), len(y), 1)
     return {"identical_outputs": same, "of": len(base), "mean_shared_prefix_fraction": round(prefix / len(base), 4)}
+
+
+def agreement_by_source(base: list[dict], other: list[dict]) -> dict:
+    """agreement() as is for a plain run; with --manifest one entry per source, Team 10's 55 and our 45 never pooled."""
+    if not any("source" in r for r in base):
+        return agreement(base, other)
+    names = {"g10": "g10_{}", "g12": "g12_fill_{}"}
+    out = {}
+    for src, name in names.items():
+        pairs = [(a, b) for a, b in zip(base, other) if a.get("source") == src]
+        if pairs:
+            out[name.format(len(pairs))] = agreement([a for a, _ in pairs], [b for _, b in pairs])
+    return out
 
 
 def main() -> None:
@@ -217,7 +238,7 @@ def main() -> None:
         summary["formats"][fmt] |= {"gguf_sha256": rt.sha256(g), "size_bytes": g.stat().st_size,
                                     **{k: runs[fmt][k] for k in ("finish", "mean_tokens_per_s", "wall_s")}}
         if fmt != "bf16":
-            summary["formats"][fmt]["agreement_with_bf16"] = agreement(runs["bf16"]["rows"], runs[fmt]["rows"])
+            summary["formats"][fmt]["agreement_with_bf16"] = agreement_by_source(runs["bf16"]["rows"], runs[fmt]["rows"])
     import llama_cpp
     summary |= {"total_s": round(time.time() - t0, 1), "machine": f"{platform.machine()} {platform.system()}",
                 "versions": {"Python": platform.python_version(), "llama-cpp-python": llama_cpp.__version__}}
