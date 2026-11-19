@@ -33,13 +33,13 @@ Test log:        teams/12-quantization/jobs/evidence/2026-11-18-dryrun1-quantize
 | 100 prompts | Team 10's `eval/effort_manifest.json` (in the repo): 30 code and 25 math slots from the files above; its 45 unavailable slots (20 tool, 15 Indic, 10 general) filled from our `prompts/fixed_100.jsonl` | manifest `d6190b2d…`, `fixed_100.sha256` |
 | llama.cpp | b11669 binaries (`llama-quantize`, `llama-server`) | build number checked by the script |
 
-Team 10's prompt texts and the model's answers to them are not written to `out/`, only ids and sha256s.
+Team 10's prompt texts, the model's answers and the output token ids are not written to `out/`, only slot ids, token counts, sha256s, the finish reason and speed. `summary.json` reports agreement with bf16 separately for Team 10's 55 slots and our 45 fill slots.
 
 ## Test run (18 Nov, Apple M5 16 GB, Metal, llama.cpp b11669)
 
 Full log: `evidence/2026-11-18-dryrun1-quantize-eval/smoke.md`. Random G5 checkpoint from `scripts/make_random_checkpoint.py`
 (2 layers, width 64, 16 + 1 experts, 131,072 ids, 9.8M parameters), the p1536 tokenizer (`e6b93a93…`), 20 own eval
-items instead of the stand-in. `quantize_eval.py` exit 0 in 295 s; `flow_fixed_prompts.py --gguf-dir` exit 0 in 25 s.
+items instead of the stand-in. `quantize_eval.py` exit 0 in 295 s; `flow_fixed_prompts.py --gguf-dir` exit 0 in 16 s.
 
 | Step | Result |
 |---|---|

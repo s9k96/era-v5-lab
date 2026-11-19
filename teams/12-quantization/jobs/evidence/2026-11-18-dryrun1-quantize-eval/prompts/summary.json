@@ -11,8 +11,8 @@
     "stop": 0,
     "length": 100
    },
-   "mean_tokens_per_s": 1077.71,
-   "wall_s": 6.1
+   "mean_tokens_per_s": 1776.34,
+   "wall_s": 3.6
   },
   "Q8_0": {
    "gguf_sha256": "26908e9b55e7dbe3d1a191bcbc3bf0e06045d1880afe1d64e605ac2b969e5de1",
@@ -21,8 +21,8 @@
     "stop": 0,
     "length": 100
    },
-   "mean_tokens_per_s": 735.53,
-   "wall_s": 8.9,
+   "mean_tokens_per_s": 1072.07,
+   "wall_s": 6.0,
    "agreement_with_bf16": {
     "identical_outputs": 15,
     "of": 100,
@@ -36,8 +36,8 @@
     "stop": 0,
     "length": 100
    },
-   "mean_tokens_per_s": 757.36,
-   "wall_s": 8.5,
+   "mean_tokens_per_s": 1054.94,
+   "wall_s": 6.1,
    "agreement_with_bf16": {
     "identical_outputs": 2,
     "of": 100,
@@ -47,7 +47,7 @@
  },
  "gguf_dir": "given (quantize_eval.py --work); converted and quantized there",
  "tokenizer_sha256": "e6b93a93a60520d7b1af2e9242485f443b5596a1e116b8f8798d83bbad25a64b",
- "total_s": 24.7,
+ "total_s": 16.3,
  "machine": "arm64 Darwin",
  "versions": {
   "Python": "3.12.15",
